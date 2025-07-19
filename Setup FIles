@@ -1,0 +1,95 @@
+# requirements.txt
+pandas
+numpy
+xgboost
+scikit-learn
+joblib
+matplotlib
+seaborn
+streamlit
+
+---
+
+# Makefile
+setup:
+	pip install -r requirements.txt
+
+train:
+	python pipelines/lotomania_ai_pipeline.py
+
+run:
+	streamlit run app/streamlit_app.py
+
+---
+
+# Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY . /app
+
+RUN pip install --no-cache-dir --upgrade pip \
+ && pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8501
+CMD ["streamlit", "run", "app/streamlit_app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
+---
+
+# Procfile
+web: streamlit run app/streamlit_app.py --server.port=$PORT --server.headless=true --server.enableCORS=false
+
+---
+
+# README.md
+# 🎯 Lotomania IA - Previsor Inteligente com XGBoost
+
+Este projeto usa IA com estatísticas e machine learning para gerar combinações otimizadas da Lotomania. Foi desenvolvido com foco em modularização e compatibilidade com múltiplos ambientes: local, Docker, Colab, Codespaces e Railway.
+
+## 🚀 Funcionalidades
+- Geração de features avançadas (z-score, frequência, primalidade, etc)
+- Treinamento do modelo com XGBoost
+- Geração de combinações probabilísticas
+- Avaliação de performance no último sorteio
+- Visualização de heatmaps espaciais
+- Interface interativa com Streamlit
+
+## 🛠️ Setup Rápido
+```bash
+make setup      # Instala dependências
+make train      # Treina modelo e gera heatmaps
+make run        # Executa o app Streamlit
+```
+
+## 🐳 Docker
+```bash
+docker build -t lotomania-ai .
+docker run -p 8501:8501 lotomania-ai
+```
+
+## 🌐 Railway/Render
+- Inclui `Procfile` para deploy automático
+- Use GitHub para integração contínua (CI/CD)
+
+## 📁 Estrutura
+```
+LM-v2/
+├── app/                   # Interface Streamlit
+├── pipelines/             # Pipeline de IA
+├── data/                  # CSVs e resultados
+├── models/                # Modelo treinado
+├── notebooks/             # Notebooks de exploração (opcional)
+├── requirements.txt
+├── Makefile
+├── Dockerfile
+├── Procfile
+└── README.md
+```
+
+## 🤖 Autor
+Desenvolvido por Leonardo Azevedo com suporte de IA (Cleverson).
+
+---
+
+Agora pronto para Kaggle, Colab, Railway, Docker e Codespaces!
