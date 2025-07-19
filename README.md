@@ -1,2 +1,3 @@
-# LM-v2
-Multiplataform
+# README.md
+# 🎯 Lotomania IA - Previsor Inteligente com XGBoost
+...
