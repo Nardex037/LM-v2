@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
-from joblib import dump
+from joblib import dump, load
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
@@ -21,7 +21,8 @@ def generate_features(draws_df: pd.DataFrame) -> pd.DataFrame:
     pos_x = pd.Series({k: v[0] for k, v in positions.items()})
     pos_y = pd.Series({k: v[1] for k, v in positions.items()})
 
-    primos = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
+    primos = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
+              53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
     fibonacci = {1, 2, 3, 5, 8, 13, 21, 34, 55, 89}
 
     is_par = pd.Series({i: int(i % 2 == 0) for i in range(1, 101)})
@@ -156,7 +157,7 @@ def main_pipeline(
         X_train, X_test, y_train, y_test = train_test_split(X_raw, y, test_size=0.2, random_state=42)
         model = train_model(X_train, y_train, model_path)
     else:
-        model = joblib.load(model_path)
+        model = load(model_path)
 
     results_dir.mkdir(parents=True, exist_ok=True)
     with open(results_dir / "model_info.txt", "w") as f:
@@ -171,7 +172,3 @@ def main_pipeline(
     score = evaluate(pred, true_draw)
     print("Top 50 dezenas preditas:", pred)
     print(f"🎯 Acertos no último sorteio: {score}/20")
-
-# ------------------------------
-if __name__ == "__main__":
-    main_pipeline()
