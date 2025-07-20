@@ -1,3 +1,4 @@
+# pipelines/lotomania_ai_pipeline.py
 import pandas as pd
 import numpy as np
 from xgboost import XGBClassifier
@@ -8,7 +9,6 @@ import seaborn as sns
 from pathlib import Path
 import os
 
-# ------------------------------
 def generate_features(draws_df: pd.DataFrame) -> pd.DataFrame:
     total_sorteios = draws_df.shape[0]
     freq = draws_df.apply(pd.Series.value_counts).fillna(0).sum(axis=1)
@@ -21,8 +21,7 @@ def generate_features(draws_df: pd.DataFrame) -> pd.DataFrame:
     pos_x = pd.Series({k: v[0] for k, v in positions.items()})
     pos_y = pd.Series({k: v[1] for k, v in positions.items()})
 
-    primos = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47,
-              53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
+    primos = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
     fibonacci = {1, 2, 3, 5, 8, 13, 21, 34, 55, 89}
 
     is_par = pd.Series({i: int(i % 2 == 0) for i in range(1, 101)})
@@ -65,7 +64,6 @@ def generate_features(draws_df: pd.DataFrame) -> pd.DataFrame:
 
     return df_feat
 
-# ------------------------------
 def plot_heatmap(df_feat, path: Path, titulo="Frequência das Dezenas na Cartela 10x10"):
     heatmap_matrix = np.zeros((10, 10), dtype=int)
     for dezena, row in df_feat.iterrows():
@@ -83,7 +81,6 @@ def plot_heatmap(df_feat, path: Path, titulo="Frequência das Dezenas na Cartela
     plt.savefig(path)
     plt.close()
 
-# ------------------------------
 def train_model(X: pd.DataFrame, y: pd.DataFrame, model_path: Path) -> XGBClassifier:
     model_path.parent.mkdir(parents=True, exist_ok=True)
     model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
@@ -91,7 +88,6 @@ def train_model(X: pd.DataFrame, y: pd.DataFrame, model_path: Path) -> XGBClassi
     dump(model, model_path)
     return model
 
-# ------------------------------
 def predict_top_50(model, X):
     X = X.to_numpy().astype(np.float32) if isinstance(X, pd.DataFrame) else X.astype(np.float32)
     probs = model.predict_proba(X)[0]
@@ -99,11 +95,9 @@ def predict_top_50(model, X):
     dezenas = [f"{i:02d}" if i < 100 else "00" for i in sorted(top_indices)]
     return dezenas
 
-# ------------------------------
 def evaluate(predicted: list, true_draw: list) -> int:
     return len(set(predicted) & set(true_draw))
 
-# ------------------------------
 def gerar_10_combinacoes(model, X_input, salvar_em: Path = None, top_k=70, total=10):
     X_input = X_input.to_numpy().astype(np.float32)
     combinacoes = []
@@ -123,7 +117,6 @@ def gerar_10_combinacoes(model, X_input, salvar_em: Path = None, top_k=70, total
         df_combs.to_csv(salvar_em, index=False)
     return df_combs
 
-# ------------------------------
 def main_pipeline(
     data_path: Path = Path("data/raw/lotomania.csv"),
     model_path: Path = Path("models/xgb_model.pkl"),
