@@ -3,12 +3,14 @@ import pandas as pd
 import numpy as np
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
 from joblib import dump, load
 import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import os
 
+# ------------------------------
 def generate_features(draws_df: pd.DataFrame) -> pd.DataFrame:
     total_sorteios = draws_df.shape[0]
     freq = draws_df.apply(pd.Series.value_counts).fillna(0).sum(axis=1)
@@ -29,13 +31,11 @@ def generate_features(draws_df: pd.DataFrame) -> pd.DataFrame:
     is_fibo = pd.Series({i: int(i in fibonacci) for i in range(1, 101)})
 
     freq_pct = freq / total_sorteios
-
     freq_10 = draws_df.tail(10).stack().value_counts().reindex(range(1, 101), fill_value=0)
     freq_100 = draws_df.tail(100).stack().value_counts().reindex(range(1, 101), fill_value=0)
 
     linha = pos_x
     coluna = pos_y
-
     linha_freq = freq.groupby(linha).transform('sum')
     coluna_freq = freq.groupby(coluna).transform('sum')
 
@@ -64,6 +64,7 @@ def generate_features(draws_df: pd.DataFrame) -> pd.DataFrame:
 
     return df_feat
 
+# ------------------------------
 def plot_heatmap(df_feat, path: Path, titulo="Frequência das Dezenas na Cartela 10x10"):
     heatmap_matrix = np.zeros((10, 10), dtype=int)
     for dezena, row in df_feat.iterrows():
@@ -81,6 +82,7 @@ def plot_heatmap(df_feat, path: Path, titulo="Frequência das Dezenas na Cartela
     plt.savefig(path)
     plt.close()
 
+# ------------------------------
 def train_model(X: pd.DataFrame, y: pd.DataFrame, model_path: Path) -> XGBClassifier:
     model_path.parent.mkdir(parents=True, exist_ok=True)
     model = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
@@ -88,6 +90,7 @@ def train_model(X: pd.DataFrame, y: pd.DataFrame, model_path: Path) -> XGBClassi
     dump(model, model_path)
     return model
 
+# ------------------------------
 def predict_top_50(model, X):
     X = X.to_numpy().astype(np.float32) if isinstance(X, pd.DataFrame) else X.astype(np.float32)
     probs = model.predict_proba(X)[0]
@@ -95,9 +98,11 @@ def predict_top_50(model, X):
     dezenas = [f"{i:02d}" if i < 100 else "00" for i in sorted(top_indices)]
     return dezenas
 
+# ------------------------------
 def evaluate(predicted: list, true_draw: list) -> int:
     return len(set(predicted) & set(true_draw))
 
+# ------------------------------
 def gerar_10_combinacoes(model, X_input, salvar_em: Path = None, top_k=70, total=10):
     X_input = X_input.to_numpy().astype(np.float32)
     combinacoes = []
@@ -117,6 +122,7 @@ def gerar_10_combinacoes(model, X_input, salvar_em: Path = None, top_k=70, total
         df_combs.to_csv(salvar_em, index=False)
     return df_combs
 
+# ------------------------------
 def main_pipeline(
     data_path: Path = Path("data/raw/lotomania.csv"),
     model_path: Path = Path("models/xgb_model.pkl"),
@@ -164,4 +170,4 @@ def main_pipeline(
     true_draw = draws.iloc[-1].apply(lambda x: f"{x % 100:02d}" if x != 100 else "00").tolist()
     score = evaluate(pred, true_draw)
     print("Top 50 dezenas preditas:", pred)
-    print(f"🎯 Acertos no último sorteio: {score}/20")
+    print(f"🌟 Acertos no último sorteio: {score}/20")
